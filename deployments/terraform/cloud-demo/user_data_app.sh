@@ -1,8 +1,10 @@
 #!/bin/bash
 set -euxo pipefail
 
+exec > >(tee /var/log/banking-cloud-demo-user-data.log | logger -t banking-cloud-demo -s 2>/dev/console) 2>&1
+
 apt update -y
-apt install -y git docker.io curl ca-certificates gnupg
+DEBIAN_FRONTEND=noninteractive apt install -y git docker.io curl ca-certificates gnupg
 
 systemctl enable docker
 systemctl start docker
@@ -14,11 +16,15 @@ curl -fsSL https://github.com/docker/compose/releases/download/v2.29.7/docker-co
 chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
 ln -sf /usr/local/lib/docker/cli-plugins/docker-compose /usr/local/bin/docker-compose
 
+docker compose version
+
 cd /home/ubuntu
 if [ ! -d banking-peak-load-prototype ]; then
   git clone ${repo_url}
 fi
+
 cd banking-peak-load-prototype
+git pull --ff-only || true
 
 cat > .env <<'ENVEOF'
 APP_PORT=8080
@@ -46,20 +52,21 @@ QUEUE_URL=amqp://guest:guest@rabbitmq:5672/
 QUEUE_WORKERS=10
 ENVEOF
 
-# Start all runtime and observability services.
 docker compose --profile optimized --profile observability up -d --build
 
-# Wait for the application to run its migrations and expose metrics.
-until curl -fsS http://localhost:8080/metrics >/dev/null; do
+echo "Waiting for app metrics endpoint..."
+for i in $(seq 1 120); do
+  if curl -fsS http://localhost:8080/metrics >/dev/null; then
+    break
+  fi
   docker compose ps || true
-  docker compose logs app --tail=30 || true
+  docker compose logs app --tail=40 || true
   sleep 5
 done
+curl -fsS http://localhost:8080/metrics >/dev/null
 
-# Seed data matching k6 mixed.js defaults:
-# accounts: 1001..101000, transactions: txn0000000000000000000000..txn0000000000000000999999
-# This avoids account not found and transaction not found errors during load testing.
-docker compose exec -T postgres psql -U postgres -d banking <<'SQLEOF'
+echo "Seeding database for mixed.js defaults..."
+docker compose exec -T postgres psql -v ON_ERROR_STOP=1 -U postgres -d banking <<'SQLEOF'
 SET synchronous_commit = off;
 TRUNCATE TABLE transactions, accounts CASCADE;
 
@@ -90,10 +97,18 @@ SELECT COUNT(*) AS accounts_seeded FROM accounts;
 SELECT COUNT(*) AS transactions_seeded FROM transactions;
 SQLEOF
 
-# Restart the app so cache/queue state starts clean after the large seed.
 docker compose restart app prometheus grafana
-sleep 10
+
+echo "Waiting after restart..."
+sleep 15
 curl -fsS http://localhost:8080/metrics >/dev/null
 curl -fsS http://localhost:9090/-/ready >/dev/null
 
+docker compose exec -T postgres psql -U postgres -d banking -c "SELECT COUNT(*) AS accounts FROM accounts;"
+docker compose exec -T postgres psql -U postgres -d banking -c "SELECT COUNT(*) AS transactions FROM transactions;"
+
+docker compose ps
 chown -R ubuntu:ubuntu /home/ubuntu/banking-peak-load-prototype
+
+touch /home/ubuntu/cloud-demo-ready
+echo "cloud-demo app server ready"

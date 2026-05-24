@@ -67,7 +67,7 @@
       },
       "targets": [
         {
-          "expr": "sum(rate(banking_api_requests_total{url!=\"/metrics\"}[1m]))",
+          "expr": "sum(rate(banking_api_requests_total{url!=\"/metrics\"}[1m])) or vector(0)",
           "legendFormat": "TPS",
           "refId": "A"
         }

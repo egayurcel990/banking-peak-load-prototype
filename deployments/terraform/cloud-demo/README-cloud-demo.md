@@ -84,3 +84,31 @@ Expected counts:
 ```bash
 terraform destroy
 ```
+
+## Post-apply readiness checks
+
+After `terraform apply`, wait until cloud-init finishes:
+
+```bash
+$(terraform output -raw ssh_app_command)
+cloud-init status --long
+ls -l /home/ubuntu/cloud-demo-ready
+cd banking-peak-load-prototype
+docker compose ps
+docker compose exec -T postgres psql -U postgres -d banking -c "SELECT COUNT(*) FROM accounts;"
+docker compose exec -T postgres psql -U postgres -d banking -c "SELECT COUNT(*) FROM transactions;"
+```
+
+Expected:
+
+- app, postgres, redis, rabbitmq, pgbouncer, prometheus, grafana are `Up`
+- accounts = `100000`
+- transactions = `1000000`
+
+If Grafana shows `No data`, verify Prometheus first:
+
+```bash
+curl http://localhost:9090/api/v1/query?query=banking_api_requests_total
+```
+
+Then run the load test for at least 2-3 minutes before judging dashboard panels.
