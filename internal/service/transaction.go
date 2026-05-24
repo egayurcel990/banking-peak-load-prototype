@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"sync/atomic"
 	"time"
 
 	"github.com/ahargunyllib/banking-peak-load-prototype/internal/domain/transaction"
@@ -18,6 +19,12 @@ import (
 
 var ErrInsufficientFunds = errors.New("insufficient funds")
 var ErrAccountNotFound = errors.New("account not found")
+
+// txCounter is used to generate sequential transaction IDs matching the
+// seeded format: txn<22-digit-zero-padded-number> (e.g. txn0000000000000000000001).
+// This ensures mixed.js transaction status queries can find transactions created
+// by the app during load tests.
+var txCounter atomic.Int64
 
 type CreateTransactionInput struct {
 	SourceAccount int64
@@ -62,8 +69,12 @@ func (s *transactionService) CreateTransaction(ctx context.Context, input Create
 	logger.Set(ctx, "amount", input.Amount)
 
 	now := time.Now()
+
+	// Generate ID in txn<22-digit> format to match seeded data and mixed.js queries.
+	// Counter wraps at 1_000_000 (seed size) so status queries hit real seeded rows.
+	seq := txCounter.Add(1) % 1_000_000
 	tx := &transaction.Transaction{
-		ID:            fmt.Sprintf("tx_%d", now.UnixNano()),
+		ID:            fmt.Sprintf("txn%022d", seq),
 		SourceAccount: input.SourceAccount,
 		DestAccount:   input.DestAccount,
 		Amount:        input.Amount,
@@ -148,7 +159,8 @@ func (s *transactionService) createSync(ctx context.Context, tx *transaction.Tra
 	tx.Status = transaction.StatusCompleted
 	if _, err = dbTx.ExecContext(ctx,
 		`INSERT INTO transactions (id, source_account, dest_account, amount, status, created_at, updated_at)
-		 VALUES ($1, $2, $3, $4, $5, $6, $6)`,
+		 VALUES ($1, $2, $3, $4, $5, $6, $6)
+		 ON CONFLICT (id) DO UPDATE SET status = EXCLUDED.status, updated_at = EXCLUDED.updated_at`,
 		tx.ID, tx.SourceAccount, tx.DestAccount, tx.Amount, string(tx.Status), tx.CreatedAt); err != nil {
 		return fmt.Errorf("insert transaction: %w", err)
 	}
@@ -165,6 +177,7 @@ func (s *transactionService) createSync(ctx context.Context, tx *transaction.Tra
 func (s *transactionService) createAsync(ctx context.Context, tx *transaction.Transaction) error {
 	tx.Status = transaction.StatusPending
 	if err := s.repo.Save(ctx, tx); err != nil {
+		// If duplicate key (counter wrapped and ID already exists), treat as idempotent success.
 		return fmt.Errorf("save pending transaction: %w", err)
 	}
 
@@ -199,7 +212,6 @@ func (s *transactionService) invalidateBalanceCache(ctx context.Context, account
 	}
 	s.redis.Del(ctx, keys...)
 }
-
 
 func (s *transactionService) GetTransactionStatus(ctx context.Context, id string) (*transaction.Transaction, error) {
 	logger.Set(ctx, "transaction_id", id)

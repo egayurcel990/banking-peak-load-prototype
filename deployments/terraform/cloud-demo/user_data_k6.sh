@@ -18,17 +18,19 @@ fi
 cd banking-peak-load-prototype
 git pull --ff-only || true
 
-cat > /home/ubuntu/run-mixed.sh <<'RUNEOF'
+# NOTE: Unquoted heredoc (no quotes around RUNEOF) so ${app_base_url} gets
+# interpolated by bash during EC2 user_data execution, not literally written.
+cat > /home/ubuntu/run-mixed.sh << RUNEOF
 #!/bin/bash
 set -euo pipefail
 cd /home/ubuntu/banking-peak-load-prototype
 
 echo "Checking target: ${app_base_url}/metrics"
-for i in $(seq 1 60); do
+for i in \$(seq 1 60); do
   if curl -fsS "${app_base_url}/metrics" >/dev/null; then
     break
   fi
-  echo "Target is not ready yet. Retry $i/60..."
+  echo "Target is not ready yet. Retry \$i/60..."
   sleep 5
 done
 
@@ -36,7 +38,23 @@ curl -fsS "${app_base_url}/metrics" >/dev/null
 BASE_URL="${app_base_url}" k6 run scripts/load-test/mixed.js
 RUNEOF
 
-cat > /home/ubuntu/run-status.sh <<'RUNEOF'
+cat > /home/ubuntu/run-optimized.sh << RUNEOF
+#!/bin/bash
+set -euo pipefail
+cd /home/ubuntu/banking-peak-load-prototype
+curl -fsS "${app_base_url}/metrics" >/dev/null
+BASE_URL="${app_base_url}" k6 run scripts/load-test/optimized.js
+RUNEOF
+
+cat > /home/ubuntu/run-spike.sh << RUNEOF
+#!/bin/bash
+set -euo pipefail
+cd /home/ubuntu/banking-peak-load-prototype
+curl -fsS "${app_base_url}/metrics" >/dev/null
+BASE_URL="${app_base_url}" k6 run scripts/load-test/spike.js
+RUNEOF
+
+cat > /home/ubuntu/run-status.sh << RUNEOF
 #!/bin/bash
 set -euo pipefail
 cd /home/ubuntu/banking-peak-load-prototype
@@ -44,8 +62,12 @@ curl -fsS "${app_base_url}/metrics" >/dev/null
 BASE_URL="${app_base_url}" k6 run scripts/load-test/status.js
 RUNEOF
 
-chmod +x /home/ubuntu/run-mixed.sh /home/ubuntu/run-status.sh
-chown -R ubuntu:ubuntu /home/ubuntu/banking-peak-load-prototype /home/ubuntu/run-mixed.sh /home/ubuntu/run-status.sh
+chmod +x /home/ubuntu/run-mixed.sh /home/ubuntu/run-optimized.sh /home/ubuntu/run-spike.sh /home/ubuntu/run-status.sh
+chown -R ubuntu:ubuntu /home/ubuntu/banking-peak-load-prototype /home/ubuntu/run-*.sh
+
+# Verify URL was correctly interpolated
+echo "Target URL baked into scripts: ${app_base_url}"
+grep "BASE_URL=" /home/ubuntu/run-mixed.sh
 
 touch /home/ubuntu/k6-runner-ready
 echo "k6 runner ready"
