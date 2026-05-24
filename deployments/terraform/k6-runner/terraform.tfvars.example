@@ -1,0 +1,14 @@
+# Copy this file to terraform.tfvars and fill in your values
+# cp terraform.tfvars.example terraform.tfvars
+
+aws_region      = "us-east-1"
+project_name    = "banking-peak-load"
+instance_type   = "t3.medium"
+public_key_path = "~/.ssh/id_rsa.pub"
+repo_url        = "https://github.com/egayurcel990/banking-peak-load-prototype.git"
+
+# Ganti dengan IP/URL aktual saat demo:
+# - Kalau pakai minikube NodePort: http://<minikube-ip>:30080
+#   Dapatkan IP dengan: minikube ip
+# - Kalau pakai ngrok: https://xxxx.ngrok-free.app
+target_base_url = "http://YOUR_MINIKUBE_OR_NGROK_URL:30080"
