@@ -1,14 +1,29 @@
 {
-  "__inputs": [],
-  "__requires": [],
-  "annotations": {
-    "list": []
-  },
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
   "id": null,
   "links": [],
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": [
+    "banking",
+    "cloud-demo",
+    "k6",
+    "prometheus"
+  ],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-30m",
+    "to": "now"
+  },
+  "timezone": "browser",
+  "title": "Banking Peak Load Monitor",
+  "uid": "banking-peak-load",
+  "version": 1,
+  "refresh": "5s",
   "panels": [
     {
       "id": 1,
@@ -27,36 +42,17 @@
       "fieldConfig": {
         "defaults": {
           "unit": "reqps",
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "red",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 200
-              },
-              {
-                "color": "green",
-                "value": 278
-              }
-            ]
-          },
           "color": {
-            "mode": "thresholds"
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
           }
         },
         "overrides": []
       },
-      "targets": [
-        {
-          "expr": "sum(rate(banking_api_requests_total{url!=\"/metrics\"}[1m]))",
-          "legendFormat": "TPS",
-          "refId": "A"
-        }
-      ],
       "options": {
         "reduceOptions": {
           "calcs": [
@@ -68,7 +64,14 @@
         "colorMode": "background",
         "graphMode": "area",
         "justifyMode": "center"
-      }
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(banking_api_requests_total{url!=\"/metrics\"}[1m]))",
+          "legendFormat": "TPS",
+          "refId": "A"
+        }
+      ]
     },
     {
       "id": 2,
@@ -87,38 +90,19 @@
       "fieldConfig": {
         "defaults": {
           "unit": "s",
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 0.5
-              },
-              {
-                "color": "red",
-                "value": 1
-              }
-            ]
-          },
           "color": {
-            "mode": "thresholds"
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
           },
           "min": 0,
-          "max": 1
+          "max": 2
         },
         "overrides": []
       },
-      "targets": [
-        {
-          "expr": "histogram_quantile(0.95, sum(rate(banking_api_request_duration_seconds_bucket{url!=\"/metrics\"}[1m])) by (le))",
-          "legendFormat": "P95",
-          "refId": "A"
-        }
-      ],
       "options": {
         "reduceOptions": {
           "calcs": [
@@ -128,7 +112,14 @@
         "orientation": "auto",
         "showThresholdLabels": true,
         "showThresholdMarkers": true
-      }
+      },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(banking_api_request_duration_seconds_bucket{url!=\"/metrics\"}[1m])) by (le))",
+          "legendFormat": "P95",
+          "refId": "A"
+        }
+      ]
     },
     {
       "id": 3,
@@ -147,36 +138,17 @@
       "fieldConfig": {
         "defaults": {
           "unit": "percentunit",
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 0.01
-              },
-              {
-                "color": "red",
-                "value": 0.05
-              }
-            ]
-          },
           "color": {
-            "mode": "thresholds"
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
           }
         },
         "overrides": []
       },
-      "targets": [
-        {
-          "expr": "(sum(rate(banking_api_requests_total{url!=\"/metrics\",code=~\"4..|5..\"}[1m])) or vector(0)) / clamp_min(sum(rate(banking_api_requests_total{url!=\"/metrics\"}[1m])), 0.001)",
-          "legendFormat": "Error Rate",
-          "refId": "A"
-        }
-      ],
       "options": {
         "reduceOptions": {
           "calcs": [
@@ -188,7 +160,14 @@
         "colorMode": "background",
         "graphMode": "area",
         "justifyMode": "center"
-      }
+      },
+      "targets": [
+        {
+          "expr": "(sum(rate(banking_api_requests_total{url!=\"/metrics\",code=~\"4..|5..\"}[1m])) or vector(0)) / clamp_min(sum(rate(banking_api_requests_total{url!=\"/metrics\"}[1m])), 0.001)",
+          "legendFormat": "Error Rate",
+          "refId": "A"
+        }
+      ]
     },
     {
       "id": 4,
@@ -207,36 +186,17 @@
       "fieldConfig": {
         "defaults": {
           "unit": "percentunit",
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "red",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 0.99
-              },
-              {
-                "color": "green",
-                "value": 0.999
-              }
-            ]
-          },
           "color": {
-            "mode": "thresholds"
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
           }
         },
         "overrides": []
       },
-      "targets": [
-        {
-          "expr": "avg_over_time(up{job=\"banking-api\"}[5m])",
-          "legendFormat": "up",
-          "refId": "A"
-        }
-      ],
       "options": {
         "reduceOptions": {
           "calcs": [
@@ -248,7 +208,14 @@
         "colorMode": "background",
         "graphMode": "area",
         "justifyMode": "center"
-      }
+      },
+      "targets": [
+        {
+          "expr": "avg_over_time(up{job=\"banking-api\"}[5m])",
+          "legendFormat": "Availability",
+          "refId": "A"
+        }
+      ]
     },
     {
       "id": 5,
@@ -267,23 +234,6 @@
       "fieldConfig": {
         "defaults": {
           "unit": "reqps",
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 0.7
-              },
-              {
-                "color": "red",
-                "value": 0.9
-              }
-            ]
-          },
           "color": {
             "mode": "palette-classic"
           },
@@ -295,13 +245,6 @@
         },
         "overrides": []
       },
-      "targets": [
-        {
-          "expr": "sum(rate(banking_api_requests_total{url!=\"/metrics\"}[1m])) by (code)",
-          "legendFormat": "HTTP {{ code }}",
-          "refId": "A"
-        }
-      ],
       "options": {
         "tooltip": {
           "mode": "multi"
@@ -310,7 +253,14 @@
           "displayMode": "list",
           "placement": "bottom"
         }
-      }
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(banking_api_requests_total{url!=\"/metrics\"}[1m])) by (code)",
+          "legendFormat": "HTTP {{code}}",
+          "refId": "A"
+        }
+      ]
     },
     {
       "id": 6,
@@ -329,23 +279,6 @@
       "fieldConfig": {
         "defaults": {
           "unit": "reqps",
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 0.7
-              },
-              {
-                "color": "red",
-                "value": 0.9
-              }
-            ]
-          },
           "color": {
             "mode": "palette-classic"
           },
@@ -357,13 +290,6 @@
         },
         "overrides": []
       },
-      "targets": [
-        {
-          "expr": "sum(rate(banking_api_requests_total{url!=\"/metrics\"}[1m])) by (url)",
-          "legendFormat": "{{ url }}",
-          "refId": "A"
-        }
-      ],
       "options": {
         "tooltip": {
           "mode": "multi"
@@ -372,7 +298,14 @@
           "displayMode": "list",
           "placement": "bottom"
         }
-      }
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(banking_api_requests_total{url!=\"/metrics\"}[1m])) by (url)",
+          "legendFormat": "{{url}}",
+          "refId": "A"
+        }
+      ]
     },
     {
       "id": 7,
@@ -391,23 +324,6 @@
       "fieldConfig": {
         "defaults": {
           "unit": "ms",
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 0.7
-              },
-              {
-                "color": "red",
-                "value": 0.9
-              }
-            ]
-          },
           "color": {
             "mode": "palette-classic"
           },
@@ -419,13 +335,6 @@
         },
         "overrides": []
       },
-      "targets": [
-        {
-          "expr": "(sum(rate(banking_api_request_duration_seconds_sum{url!=\"/metrics\"}[1m])) by (url) / clamp_min(sum(rate(banking_api_request_duration_seconds_count{url!=\"/metrics\"}[1m])) by (url), 0.001)) * 1000",
-          "legendFormat": "{{ url }}",
-          "refId": "A"
-        }
-      ],
       "options": {
         "tooltip": {
           "mode": "multi"
@@ -434,7 +343,14 @@
           "displayMode": "list",
           "placement": "bottom"
         }
-      }
+      },
+      "targets": [
+        {
+          "expr": "(sum(rate(banking_api_request_duration_seconds_sum{url!=\"/metrics\"}[1m])) by (url) / clamp_min(sum(rate(banking_api_request_duration_seconds_count{url!=\"/metrics\"}[1m])) by (url), 0.001)) * 1000",
+          "legendFormat": "{{url}}",
+          "refId": "A"
+        }
+      ]
     },
     {
       "id": 8,
@@ -452,24 +368,7 @@
       },
       "fieldConfig": {
         "defaults": {
-          "unit": "s",
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 0.7
-              },
-              {
-                "color": "red",
-                "value": 0.9
-              }
-            ]
-          },
+          "unit": "ms",
           "color": {
             "mode": "palette-classic"
           },
@@ -481,13 +380,6 @@
         },
         "overrides": []
       },
-      "targets": [
-        {
-          "expr": "histogram_quantile(0.95, sum(rate(banking_api_request_duration_seconds_bucket{url!=\"/metrics\"}[1m])) by (le, url))",
-          "legendFormat": "{{ url }}",
-          "refId": "A"
-        }
-      ],
       "options": {
         "tooltip": {
           "mode": "multi"
@@ -496,15 +388,22 @@
           "displayMode": "list",
           "placement": "bottom"
         }
-      }
+      },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(banking_api_request_duration_seconds_bucket{url!=\"/metrics\"}[1m])) by (le, url)) * 1000",
+          "legendFormat": "{{url}}",
+          "refId": "A"
+        }
+      ]
     },
     {
       "id": 9,
-      "title": "Application Memory Usage",
+      "title": "Dependency Health",
       "type": "timeseries",
       "gridPos": {
         "h": 7,
-        "w": 16,
+        "w": 12,
         "x": 0,
         "y": 19
       },
@@ -514,24 +413,7 @@
       },
       "fieldConfig": {
         "defaults": {
-          "unit": "bytes",
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 0.7
-              },
-              {
-                "color": "red",
-                "value": 0.9
-              }
-            ]
-          },
+          "unit": "short",
           "color": {
             "mode": "palette-classic"
           },
@@ -543,13 +425,6 @@
         },
         "overrides": []
       },
-      "targets": [
-        {
-          "expr": "app_memory_usage_bytes",
-          "legendFormat": "Memory Used",
-          "refId": "A"
-        }
-      ],
       "options": {
         "tooltip": {
           "mode": "multi"
@@ -558,16 +433,23 @@
           "displayMode": "list",
           "placement": "bottom"
         }
-      }
+      },
+      "targets": [
+        {
+          "expr": "dependency_up",
+          "legendFormat": "{{dependency}}",
+          "refId": "A"
+        }
+      ]
     },
     {
       "id": 10,
-      "title": "Resource Utilization (Bar)",
-      "type": "bargauge",
+      "title": "Application Memory Usage",
+      "type": "timeseries",
       "gridPos": {
         "h": 7,
-        "w": 8,
-        "x": 16,
+        "w": 12,
+        "x": 12,
         "y": 19
       },
       "datasource": {
@@ -576,49 +458,39 @@
       },
       "fieldConfig": {
         "defaults": {
-          "unit": "percentunit",
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 0.7
-              },
-              {
-                "color": "red",
-                "value": 0.9
-              }
-            ]
-          },
+          "unit": "bytes",
           "color": {
-            "mode": "thresholds"
+            "mode": "palette-classic"
           },
-          "min": 0,
-          "max": 1
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
+          }
         },
         "overrides": []
       },
+      "options": {
+        "tooltip": {
+          "mode": "multi"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      },
       "targets": [
         {
-          "expr": "app_cpu_utilization_ratio or app_memory_utilization_ratio",
-          "legendFormat": "{{ __name__ }}",
+          "expr": "app_memory_usage_bytes",
+          "legendFormat": "Memory Used",
           "refId": "A"
-        }
-      ],
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
         },
-        "orientation": "horizontal",
-        "displayMode": "gradient",
-        "showUnfilled": true
-      }
+        {
+          "expr": "app_memory_limit_bytes",
+          "legendFormat": "Memory Limit",
+          "refId": "B"
+        }
+      ]
     },
     {
       "id": 11,
@@ -637,23 +509,6 @@
       "fieldConfig": {
         "defaults": {
           "unit": "percentunit",
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 0.7
-              },
-              {
-                "color": "red",
-                "value": 0.9
-              }
-            ]
-          },
           "color": {
             "mode": "palette-classic"
           },
@@ -665,13 +520,6 @@
         },
         "overrides": []
       },
-      "targets": [
-        {
-          "expr": "app_cpu_utilization_ratio or app_memory_utilization_ratio",
-          "legendFormat": "{{ __name__ }}",
-          "refId": "A"
-        }
-      ],
       "options": {
         "tooltip": {
           "mode": "multi"
@@ -680,12 +528,24 @@
           "displayMode": "list",
           "placement": "bottom"
         }
-      }
+      },
+      "targets": [
+        {
+          "expr": "app_cpu_utilization_ratio",
+          "legendFormat": "CPU",
+          "refId": "A"
+        },
+        {
+          "expr": "app_memory_utilization_ratio",
+          "legendFormat": "Memory",
+          "refId": "B"
+        }
+      ]
     },
     {
       "id": 12,
-      "title": "Prometheus Scrape Requests",
-      "type": "timeseries",
+      "title": "Resource Utilization (Bar)",
+      "type": "bargauge",
       "gridPos": {
         "h": 7,
         "w": 8,
@@ -698,24 +558,7 @@
       },
       "fieldConfig": {
         "defaults": {
-          "unit": "reqps",
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 0.7
-              },
-              {
-                "color": "red",
-                "value": 0.9
-              }
-            ]
-          },
+          "unit": "percentunit",
           "color": {
             "mode": "palette-classic"
           },
@@ -727,13 +570,57 @@
         },
         "overrides": []
       },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "showUnfilled": true
+      },
       "targets": [
         {
-          "expr": "rate(promhttp_metric_handler_requests_total[1m])",
-          "legendFormat": "Scrape {{ code }}",
+          "expr": "app_cpu_utilization_ratio",
+          "legendFormat": "CPU",
           "refId": "A"
+        },
+        {
+          "expr": "app_memory_utilization_ratio",
+          "legendFormat": "Memory",
+          "refId": "B"
         }
-      ],
+      ]
+    },
+    {
+      "id": 13,
+      "title": "Prometheus Scrape Requests",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 7,
+        "w": 24,
+        "x": 0,
+        "y": 33
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
+          }
+        },
+        "overrides": []
+      },
       "options": {
         "tooltip": {
           "mode": "multi"
@@ -742,26 +629,14 @@
           "displayMode": "list",
           "placement": "bottom"
         }
-      }
+      },
+      "targets": [
+        {
+          "expr": "rate(promhttp_metric_handler_requests_total[1m])",
+          "legendFormat": "Scrape {{code}}",
+          "refId": "A"
+        }
+      ]
     }
-  ],
-  "refresh": "10s",
-  "schemaVersion": 38,
-  "tags": [
-    "banking",
-    "cloud-demo",
-    "k6",
-    "prometheus"
-  ],
-  "templating": {
-    "list": []
-  },
-  "time": {
-    "from": "now-30m",
-    "to": "now"
-  },
-  "timezone": "browser",
-  "title": "Banking Cloud Load Monitor",
-  "uid": "banking-cloud-load",
-  "version": 1
+  ]
 }
