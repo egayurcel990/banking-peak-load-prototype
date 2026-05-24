@@ -1,10 +1,13 @@
 aws_region        = "us-east-1"
 project_name      = "banking-cloud-demo"
+
 app_instance_type = "t3.medium"
 k6_instance_type  = "t3.medium"
-public_key_path   = "~/.ssh/id_rsa.pub"
+
+public_key_path = "~/.ssh/id_rsa.pub"
 
 repo_url = "https://github.com/egayurcel990/banking-peak-load-prototype.git"
 
+# For demo simplicity. For safer usage, replace 0.0.0.0/0 with YOUR_PUBLIC_IP/32.
 ssh_cidr           = "0.0.0.0/0"
 public_access_cidr = "0.0.0.0/0"

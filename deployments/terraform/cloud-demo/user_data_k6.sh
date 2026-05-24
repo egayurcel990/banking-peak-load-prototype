@@ -13,11 +13,4 @@ cd /home/ubuntu
 git clone ${repo_url}
 cd banking-peak-load-prototype
 
-cat > /home/ubuntu/run-mixed.sh <<'EOF'
-#!/bin/bash
-cd /home/ubuntu/banking-peak-load-prototype
-BASE_URL="${app_base_url}" k6 run scripts/load-test/mixed.js
-EOF
-
-chmod +x /home/ubuntu/run-mixed.sh
-chown -R ubuntu:ubuntu /home/ubuntu/banking-peak-load-prototype /home/ubuntu/run-mixed.sh
+chown -R ubuntu:ubuntu /home/ubuntu/banking-peak-load-prototype

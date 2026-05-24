@@ -1,499 +1,767 @@
+{
+  "__inputs": [],
+  "__requires": [],
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "panels": [
     {
-      "__inputs": [],
-      "__requires": [],
-      "annotations": { "list": [] },
-      "editable": true,
-      "fiscalYearStartMonth": 0,
-      "graphTooltip": 1,
-      "id": null,
-      "links": [],
-      "panels": [
-        {
-          "id": 1,
-          "title": "Total Throughput (TPS)",
-          "type": "stat",
-          "gridPos": { "h": 5, "w": 6, "x": 0, "y": 0 },
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "fieldConfig": {
-            "defaults": {
-              "unit": "reqps",
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  { "color": "red", "value": null },
-                  { "color": "yellow", "value": 200 },
-                  { "color": "green", "value": 278 }
-                ]
-              },
-              "mappings": [],
-              "color": { "mode": "thresholds" }
-            },
-            "overrides": []
-          },
-          "options": {
-            "reduceOptions": { "calcs": ["lastNotNull"] },
-            "orientation": "auto",
-            "textMode": "auto",
-            "colorMode": "background",
-            "graphMode": "area",
-            "justifyMode": "center"
-          },
-          "targets": [
-            {
-              "expr": "sum(rate(banking_api_requests_total{job=\"banking-api\",url!=\"/metrics\"}[1m]))",
-              "legendFormat": "TPS",
-              "refId": "A"
-            }
-          ]
-        },
-        {
-          "id": 2,
-          "title": "P95 Latency",
-          "type": "gauge",
-          "gridPos": { "h": 5, "w": 6, "x": 6, "y": 0 },
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "fieldConfig": {
-            "defaults": {
-              "unit": "s",
-              "min": 0,
-              "max": 5,
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  { "color": "green", "value": null },
-                  { "color": "yellow", "value": 1.5 },
-                  { "color": "red", "value": 2 }
-                ]
-              },
-              "color": { "mode": "thresholds" }
-            },
-            "overrides": []
-          },
-          "options": {
-            "reduceOptions": { "calcs": ["lastNotNull"] },
-            "orientation": "auto",
-            "showThresholdLabels": true,
-            "showThresholdMarkers": true
-          },
-          "targets": [
-            {
-              "expr": "histogram_quantile(0.95, sum(rate(banking_api_request_duration_seconds_bucket{job=\"banking-api\",url!=\"/metrics\"}[5m])) by (le))",
-              "legendFormat": "P95",
-              "refId": "A"
-            }
-          ]
-        },
-        {
-          "id": 3,
-          "title": "Global Error Rate",
-          "type": "stat",
-          "gridPos": { "h": 5, "w": 6, "x": 12, "y": 0 },
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "fieldConfig": {
-            "defaults": {
-              "unit": "percentunit",
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  { "color": "green", "value": null },
-                  { "color": "yellow", "value": 0.005 },
-                  { "color": "red", "value": 0.01 }
-                ]
-              },
-              "color": { "mode": "thresholds" }
-            },
-            "overrides": []
-          },
-          "options": {
-            "reduceOptions": { "calcs": ["lastNotNull"] },
-            "orientation": "auto",
-            "textMode": "auto",
-            "colorMode": "background",
-            "graphMode": "area",
-            "justifyMode": "center"
-          },
-          "targets": [
-            {
-              "expr": "sum(rate(banking_api_requests_total{job=\"banking-api\",code=~\"5..\",url!=\"/metrics\"}[5m])) / clamp_min(sum(rate(banking_api_requests_total{job=\"banking-api\",url!=\"/metrics\"}[5m])), 0.001)",
-              "legendFormat": "Error Rate",
-              "refId": "A"
-            }
-          ]
-        },
-        {
-          "id": 4,
-          "title": "Uptime / Availability",
-          "type": "stat",
-          "gridPos": { "h": 5, "w": 6, "x": 18, "y": 0 },
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "fieldConfig": {
-            "defaults": {
-              "unit": "percentunit",
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  { "color": "red", "value": null },
-                  { "color": "yellow", "value": 0.99 },
-                  { "color": "green", "value": 0.999 }
-                ]
-              },
-              "color": { "mode": "thresholds" }
-            },
-            "overrides": []
-          },
-          "options": {
-            "reduceOptions": { "calcs": ["lastNotNull"] },
-            "orientation": "auto",
-            "textMode": "auto",
-            "colorMode": "background",
-            "graphMode": "none",
-            "justifyMode": "center"
-          },
-          "targets": [
-            {
-              "expr": "avg_over_time(up{job=\"banking-api\"}[24h])",
-              "legendFormat": "API Gateway",
-              "refId": "A"
-            },
-            {
-              "expr": "avg_over_time(dependency_up{job=\"banking-api\",dependency=\"database\"}[24h])",
-              "legendFormat": "Database",
-              "refId": "B"
-            }
-          ]
-        },
-        {
-          "id": 5,
-          "title": "Rate Limiter Drops (HTTP 429)",
-          "type": "timeseries",
-          "gridPos": { "h": 7, "w": 12, "x": 0, "y": 5 },
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "fieldConfig": {
-            "defaults": {
-              "unit": "reqps",
-              "color": { "mode": "palette-classic" },
-              "custom": {
-                "lineWidth": 2,
-                "fillOpacity": 10,
-                "spanNulls": false
-              },
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  { "color": "green", "value": null },
-                  { "color": "red", "value": 10 }
-                ]
-              }
-            },
-            "overrides": []
-          },
-          "options": {
-            "tooltip": { "mode": "multi" },
-            "legend": { "displayMode": "list", "placement": "bottom" }
-          },
-          "targets": [
-            {
-              "expr": "sum(rate(rate_limiter_drops_total{job=\"banking-api\"}[1m]))",
-              "legendFormat": "Dropped Requests",
-              "refId": "A"
-            }
-          ]
-        },
-        {
-          "id": 6,
-          "title": "Redis Cache Hit Ratio",
-          "type": "timeseries",
-          "gridPos": { "h": 7, "w": 12, "x": 12, "y": 5 },
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "fieldConfig": {
-            "defaults": {
-              "unit": "percentunit",
-              "min": 0,
-              "max": 1,
-              "color": { "mode": "palette-classic" },
-              "custom": {
-                "lineWidth": 2,
-                "fillOpacity": 15,
-                "spanNulls": false
-              },
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  { "color": "red", "value": null },
-                  { "color": "yellow", "value": 0.5 },
-                  { "color": "green", "value": 0.7 }
-                ]
-              }
-            },
-            "overrides": []
-          },
-          "options": {
-            "tooltip": { "mode": "multi" },
-            "legend": { "displayMode": "list", "placement": "bottom" }
-          },
-          "targets": [
-            {
-              "expr": "sum(rate(cache_hits_total{job=\"banking-api\",key_type=~\"balance|tx_status\"}[5m])) / clamp_min(sum(rate(cache_hits_total{job=\"banking-api\",key_type=~\"balance|tx_status\"}[5m])) + sum(rate(cache_misses_total{job=\"banking-api\",key_type=~\"balance|tx_status\"}[5m])), 0.001)",
-              "legendFormat": "Cache Hit Ratio",
-              "refId": "A"
-            }
-          ]
-        },
-        {
-          "id": 7,
-          "title": "RabbitMQ Queue Depth",
-          "type": "timeseries",
-          "gridPos": { "h": 7, "w": 12, "x": 0, "y": 12 },
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "fieldConfig": {
-            "defaults": {
-              "unit": "short",
-              "color": { "mode": "palette-classic" },
-              "custom": {
-                "lineWidth": 2,
-                "fillOpacity": 10,
-                "spanNulls": false
-              },
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  { "color": "green", "value": null },
-                  { "color": "yellow", "value": 1000 },
-                  { "color": "red", "value": 5000 }
-                ]
-              }
-            },
-            "overrides": []
-          },
-          "options": {
-            "tooltip": { "mode": "multi" },
-            "legend": { "displayMode": "list", "placement": "bottom" }
-          },
-          "targets": [
-            {
-              "expr": "queue_depth{job=\"banking-api\",queue=\"transactions\"}",
-              "legendFormat": "{{ queue }}",
-              "refId": "A"
-            }
-          ]
-        },
-        {
-          "id": 8,
-          "title": "Circuit Breaker Status",
-          "type": "timeseries",
-          "gridPos": { "h": 7, "w": 12, "x": 12, "y": 12 },
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "fieldConfig": {
-            "defaults": {
-              "unit": "short",
-              "color": { "mode": "palette-classic" },
-              "custom": {
-                "lineWidth": 2,
-                "fillOpacity": 10
-              },
-              "mappings": [
-                { "type": "value", "options": { "0": { "text": "CLOSED", "color": "green" } } },
-                { "type": "value", "options": { "1": { "text": "OPEN", "color": "red" } } },
-                { "type": "value", "options": { "2": { "text": "HALF-OPEN", "color": "yellow" } } }
-              ]
-            },
-            "overrides": []
-          },
-          "options": {
-            "tooltip": { "mode": "multi" },
-            "legend": { "displayMode": "list", "placement": "bottom" }
-          },
-          "targets": [
-            {
-              "expr": "circuit_breaker_state{job=\"banking-api\",dependency=\"api\"}",
-              "legendFormat": "{{ dependency }}",
-              "refId": "A"
-            }
-          ]
-        },
-        {
-          "id": 9,
-          "title": "PostgreSQL Active Connections (via PgBouncer)",
-          "type": "timeseries",
-          "gridPos": { "h": 7, "w": 16, "x": 0, "y": 19 },
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "fieldConfig": {
-            "defaults": {
-              "unit": "short",
-              "color": { "mode": "palette-classic" },
-              "custom": {
-                "lineWidth": 2,
-                "fillOpacity": 10
-              },
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  { "color": "green", "value": null },
-                  { "color": "yellow", "value": 80 },
-                  { "color": "red", "value": 100 }
-                ]
-              }
-            },
-            "overrides": [
+      "id": 1,
+      "title": "Total Throughput (TPS)",
+      "type": "stat",
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 0,
+        "y": 0
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
               {
-                "matcher": { "id": "byName", "options": "Max Limit" },
-                "properties": [
-                  { "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } },
-                  { "id": "custom.lineStyle", "value": { "dash": [10, 10], "fill": "dash" } },
-                  { "id": "custom.lineWidth", "value": 2 }
-                ]
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 200
+              },
+              {
+                "color": "green",
+                "value": 278
               }
             ]
           },
-          "options": {
-            "tooltip": { "mode": "multi" },
-            "legend": { "displayMode": "list", "placement": "bottom" }
-          },
-          "targets": [
-            {
-              "expr": "db_connections_active{job=\"banking-api\"}",
-              "legendFormat": "Active Connections",
-              "refId": "A"
-            },
-            {
-              "expr": "vector(100)",
-              "legendFormat": "Max Limit",
-              "refId": "B"
-            }
-          ]
+          "color": {
+            "mode": "thresholds"
+          }
         },
+        "overrides": []
+      },
+      "targets": [
         {
-          "id": 10,
-          "title": "Active Connections (Bar)",
-          "type": "bargauge",
-          "gridPos": { "h": 7, "w": 8, "x": 16, "y": 19 },
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "fieldConfig": {
-            "defaults": {
-              "unit": "short",
-              "min": 0,
-              "max": 100,
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  { "color": "green", "value": null },
-                  { "color": "yellow", "value": 80 },
-                  { "color": "red", "value": 100 }
-                ]
-              },
-              "color": { "mode": "thresholds" }
-            },
-            "overrides": []
-          },
-          "options": {
-            "reduceOptions": { "calcs": ["lastNotNull"] },
-            "orientation": "horizontal",
-            "displayMode": "gradient",
-            "showUnfilled": true
-          },
-          "targets": [
-            {
-              "expr": "db_connections_active{job=\"banking-api\"}",
-              "legendFormat": "Active Connections",
-              "refId": "A"
-            }
-          ]
-        },
-        {
-          "id": 11,
-          "title": "CPU & Memory Utilization",
-          "type": "timeseries",
-          "gridPos": { "h": 7, "w": 16, "x": 0, "y": 26 },
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "fieldConfig": {
-            "defaults": {
-              "unit": "percentunit",
-              "min": 0,
-              "max": 1,
-              "color": { "mode": "palette-classic" },
-              "custom": {
-                "lineWidth": 2,
-                "fillOpacity": 10
-              },
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  { "color": "green", "value": null },
-                  { "color": "yellow", "value": 0.7 },
-                  { "color": "red", "value": 0.9 }
-                ]
-              }
-            },
-            "overrides": []
-          },
-          "options": {
-            "tooltip": { "mode": "multi" },
-            "legend": { "displayMode": "list", "placement": "bottom" }
-          },
-          "targets": [
-            {
-              "expr": "app_cpu_utilization_ratio{job=\"banking-api\"}",
-              "legendFormat": "CPU: API",
-              "refId": "A"
-            },
-            {
-              "expr": "app_memory_utilization_ratio{job=\"banking-api\"}",
-              "legendFormat": "MEM: API",
-              "refId": "B"
-            }
-          ]
-        },
-        {
-          "id": 12,
-          "title": "Resource Utilization (Bar)",
-          "type": "bargauge",
-          "gridPos": { "h": 7, "w": 8, "x": 16, "y": 26 },
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "fieldConfig": {
-            "defaults": {
-              "unit": "percentunit",
-              "min": 0,
-              "max": 1,
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  { "color": "green", "value": null },
-                  { "color": "yellow", "value": 0.7 },
-                  { "color": "red", "value": 0.9 }
-                ]
-              },
-              "color": { "mode": "thresholds" }
-            },
-            "overrides": []
-          },
-          "options": {
-            "reduceOptions": { "calcs": ["lastNotNull"] },
-            "orientation": "horizontal",
-            "displayMode": "gradient",
-            "showUnfilled": true
-          },
-          "targets": [
-            {
-              "expr": "app_cpu_utilization_ratio{job=\"banking-api\"}",
-              "legendFormat": "CPU: API",
-              "refId": "A"
-            },
-            {
-              "expr": "app_memory_utilization_ratio{job=\"banking-api\"}",
-              "legendFormat": "MEM: API",
-              "refId": "B"
-            }
-          ]
+          "expr": "sum(rate(banking_api_requests_total{url!=\"/metrics\"}[1m]))",
+          "legendFormat": "TPS",
+          "refId": "A"
         }
       ],
-      "refresh": "10s",
-      "schemaVersion": 38,
-      "tags": ["banking", "peak-load", "monitoring"],
-      "templating": { "list": [] },
-      "time": { "from": "now-1h", "to": "now" },
-      "timepicker": {},
-      "timezone": "browser",
-      "title": "Banking Peak Load Monitor",
-      "uid": "banking-peak-load",
-      "version": 1
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "center"
+      }
+    },
+    {
+      "id": 2,
+      "title": "P95 Latency",
+      "type": "gauge",
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 6,
+        "y": 0
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.5
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "min": 0,
+          "max": 1
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(banking_api_request_duration_seconds_bucket{url!=\"/metrics\"}[1m])) by (le))",
+          "legendFormat": "P95",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "orientation": "auto",
+        "showThresholdLabels": true,
+        "showThresholdMarkers": true
+      }
+    },
+    {
+      "id": 3,
+      "title": "Global Error Rate",
+      "type": "stat",
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 12,
+        "y": 0
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.01
+              },
+              {
+                "color": "red",
+                "value": 0.05
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "expr": "(sum(rate(banking_api_requests_total{url!=\"/metrics\",code=~\"4..|5..\"}[1m])) or vector(0)) / clamp_min(sum(rate(banking_api_requests_total{url!=\"/metrics\"}[1m])), 0.001)",
+          "legendFormat": "Error Rate",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "center"
+      }
+    },
+    {
+      "id": 4,
+      "title": "Uptime / Availability",
+      "type": "stat",
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 18,
+        "y": 0
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.99
+              },
+              {
+                "color": "green",
+                "value": 0.999
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "expr": "avg_over_time(up{job=\"banking-api\"}[5m])",
+          "legendFormat": "up",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "center"
+      }
+    },
+    {
+      "id": 5,
+      "title": "Request Rate by HTTP Code",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 5
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.7
+              },
+              {
+                "color": "red",
+                "value": 0.9
+              }
+            ]
+          },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
+          }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(banking_api_requests_total{url!=\"/metrics\"}[1m])) by (code)",
+          "legendFormat": "HTTP {{ code }}",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "tooltip": {
+          "mode": "multi"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      }
+    },
+    {
+      "id": 6,
+      "title": "Request Rate by Endpoint",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 5
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.7
+              },
+              {
+                "color": "red",
+                "value": 0.9
+              }
+            ]
+          },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
+          }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(banking_api_requests_total{url!=\"/metrics\"}[1m])) by (url)",
+          "legendFormat": "{{ url }}",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "tooltip": {
+          "mode": "multi"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      }
+    },
+    {
+      "id": 7,
+      "title": "Average Latency by Endpoint",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 12
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.7
+              },
+              {
+                "color": "red",
+                "value": 0.9
+              }
+            ]
+          },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
+          }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "expr": "(sum(rate(banking_api_request_duration_seconds_sum{url!=\"/metrics\"}[1m])) by (url) / clamp_min(sum(rate(banking_api_request_duration_seconds_count{url!=\"/metrics\"}[1m])) by (url), 0.001)) * 1000",
+          "legendFormat": "{{ url }}",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "tooltip": {
+          "mode": "multi"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      }
+    },
+    {
+      "id": 8,
+      "title": "P95 Latency by Endpoint",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 12
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.7
+              },
+              {
+                "color": "red",
+                "value": 0.9
+              }
+            ]
+          },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
+          }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(banking_api_request_duration_seconds_bucket{url!=\"/metrics\"}[1m])) by (le, url))",
+          "legendFormat": "{{ url }}",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "tooltip": {
+          "mode": "multi"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      }
+    },
+    {
+      "id": 9,
+      "title": "Application Memory Usage",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 7,
+        "w": 16,
+        "x": 0,
+        "y": 19
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.7
+              },
+              {
+                "color": "red",
+                "value": 0.9
+              }
+            ]
+          },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
+          }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "expr": "app_memory_usage_bytes",
+          "legendFormat": "Memory Used",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "tooltip": {
+          "mode": "multi"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      }
+    },
+    {
+      "id": 10,
+      "title": "Resource Utilization (Bar)",
+      "type": "bargauge",
+      "gridPos": {
+        "h": 7,
+        "w": 8,
+        "x": 16,
+        "y": 19
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.7
+              },
+              {
+                "color": "red",
+                "value": 0.9
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "min": 0,
+          "max": 1
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "expr": "app_cpu_utilization_ratio or app_memory_utilization_ratio",
+          "legendFormat": "{{ __name__ }}",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "showUnfilled": true
+      }
+    },
+    {
+      "id": 11,
+      "title": "CPU & Memory Utilization",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 7,
+        "w": 16,
+        "x": 0,
+        "y": 26
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.7
+              },
+              {
+                "color": "red",
+                "value": 0.9
+              }
+            ]
+          },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
+          }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "expr": "app_cpu_utilization_ratio or app_memory_utilization_ratio",
+          "legendFormat": "{{ __name__ }}",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "tooltip": {
+          "mode": "multi"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      }
+    },
+    {
+      "id": 12,
+      "title": "Prometheus Scrape Requests",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 7,
+        "w": 8,
+        "x": 16,
+        "y": 26
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.7
+              },
+              {
+                "color": "red",
+                "value": 0.9
+              }
+            ]
+          },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
+          }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "expr": "rate(promhttp_metric_handler_requests_total[1m])",
+          "legendFormat": "Scrape {{ code }}",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "tooltip": {
+          "mode": "multi"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      }
     }
+  ],
+  "refresh": "10s",
+  "schemaVersion": 38,
+  "tags": [
+    "banking",
+    "cloud-demo",
+    "k6",
+    "prometheus"
+  ],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-30m",
+    "to": "now"
+  },
+  "timezone": "browser",
+  "title": "Banking Cloud Load Monitor",
+  "uid": "banking-cloud-load",
+  "version": 1
+}
