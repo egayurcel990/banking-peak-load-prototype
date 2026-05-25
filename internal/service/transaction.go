@@ -72,7 +72,8 @@ func (s *transactionService) CreateTransaction(ctx context.Context, input Create
 
 	// Generate ID in txn<22-digit> format to match seeded data and mixed.js queries.
 	// Counter wraps at 1_000_000 (seed size) so status queries hit real seeded rows.
-	seq := txCounter.Add(1) % 1_000_000
+	
+	seq := int64(1_000_000) + txCounter.Add(1)
 	tx := &transaction.Transaction{
 		ID:            fmt.Sprintf("txn%022d", seq),
 		SourceAccount: input.SourceAccount,
