@@ -160,8 +160,8 @@ data:
           },
           "targets": [
             {
-              "expr": "avg_over_time(up{job=\"banking-app\"}[5m])",
-              "legendFormat": "banking-app",
+              "expr": "avg_over_time(up{job=\"banking-api\"}[5m])",
+              "legendFormat": "banking-api",
               "refId": "A"
             }
           ]
