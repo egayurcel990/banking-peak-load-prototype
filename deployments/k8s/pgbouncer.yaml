@@ -10,7 +10,7 @@ data:
 
     [pgbouncer]
     listen_addr        = 0.0.0.0
-    listen_port        = 6432
+    listen_port        = 5432
     auth_type          = trust
     auth_file          = /etc/pgbouncer/userlist.txt
     pool_mode          = transaction
@@ -54,12 +54,10 @@ spec:
         - name: pgbouncer
           image: edoburu/pgbouncer:v1.25.1-p0
           ports:
-            - containerPort: 6432
-
+            - containerPort: 5432
           volumeMounts:
             - name: config
               mountPath: /etc/pgbouncer
-
       volumes:
         - name: config
           configMap:
@@ -76,4 +74,4 @@ spec:
     app: pgbouncer
   ports:
     - port: 6432
-      targetPort: 6432
+      targetPort: 5432

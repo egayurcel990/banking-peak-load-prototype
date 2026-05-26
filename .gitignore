@@ -27,6 +27,7 @@ Thumbs.db
 !.env.example
 !.env.baseline.example
 !.env.optimized.example
+!.env.cloud.example
 
 # Docker volumes
 data/

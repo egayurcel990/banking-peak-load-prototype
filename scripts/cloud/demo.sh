@@ -9,11 +9,12 @@ set -e
 
 SSH_KEY="${SSH_KEY/#\~/$HOME}"
 
-echo "Starting cloud stack on $SERVER_IP ..."
+echo "Starting optimized cloud stack on $SERVER_IP ..."
 
 ssh -i "$SSH_KEY" "$SSH_USER@$SERVER_IP" "
 cd $REMOTE_APP_DIR &&
-docker compose up -d
+cp .env.optimized.example .env &&
+docker compose --profile optimized up -d --build
 "
 
 echo ""
