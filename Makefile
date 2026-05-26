@@ -11,7 +11,8 @@ K8S_DB_DSN ?= postgres://postgres:postgres@localhost:$(K8S_DB_PORT)/banking?sslm
         k8s-up k8s-down k8s-status k8s-logs \
         k8s-port-forward k8s-port-forward-db \
         k8s-port-forward-prometheus k8s-port-forward-grafana \
-        k8s-seed k8s-load-test
+        k8s-seed k8s-load-test \
+		cloud-demo cloud-load-test cloud-health cloud-logs cloud-cleanup
 
 init:
 	go mod download
