@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
         - name: banking-app
-          image: marquisccel/banking-peak-load:latest
+          image: ghcr.io/egayurcel990/banking-peak-load-prototype:latest
           imagePullPolicy: Always
 
           ports:

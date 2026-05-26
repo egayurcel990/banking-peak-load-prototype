@@ -15,7 +15,7 @@ variable "app_instance_type" {
 
 variable "k6_instance_type" {
   type    = string
-  default = "t2.micro"
+  default = "t3.medium"
 }
 
 variable "public_key_path" {
