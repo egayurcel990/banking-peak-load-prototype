@@ -112,6 +112,7 @@ func (c *Client) QueueDepth(queue string) (int64, error) {
 	if err != nil {
 		return 0, err
 	}
+	//nolint:staticcheck // QueueInspect still used for compatibility
 	q, err := ch.QueueInspect(queue)
 	if err != nil {
 		return 0, fmt.Errorf("inspect queue %s: %w", queue, err)

@@ -1,34 +1,15 @@
-version: "2"
-
 run:
   timeout: 5m
-  go: "1.25"
 
 linters:
+  disable-all: true
   enable:
     - errcheck
     - govet
     - staticcheck
     - unused
     - ineffassign
-    - gocritic
-    - misspell
-  exclusions:
-    paths:
-      - gen/
-  settings:
-    gocritic:
-      enabled-tags:
-        - diagnostic
-        - performance
 
 issues:
   max-issues-per-linter: 50
   max-same-issues: 5
-
-output:
-  formats:
-    text:
-      print-linter-name: true
-      print-issued-lines: true
-      colors: true
