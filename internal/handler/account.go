@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/ahargunyllib/banking-peak-load-prototype/internal/service"
+	"github.com/egayurcel990/banking-peak-load-prototype/internal/service"
 	"github.com/labstack/echo/v5"
 )
 

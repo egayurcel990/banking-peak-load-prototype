@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/ahargunyllib/banking-peak-load-prototype/internal/domain/transaction"
+	"github.com/egayurcel990/banking-peak-load-prototype/internal/domain/transaction"
 )
 
 type TransactionRepository struct {

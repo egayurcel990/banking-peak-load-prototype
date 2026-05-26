@@ -3,7 +3,7 @@ package middleware
 import (
 	"time"
 
-	"github.com/ahargunyllib/banking-peak-load-prototype/internal/logger"
+	"github.com/egayurcel990/banking-peak-load-prototype/internal/logger"
 	"github.com/labstack/echo/v5"
 )
 

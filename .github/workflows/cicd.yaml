@@ -9,7 +9,7 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_PREFIX: ghcr.io/${{ github.repository }}
-  GO_VERSION: "1.25"
+  GO_VERSION: "1.24.10"
   GOLANGCI_LINT_VERSION: latest
 
 jobs:

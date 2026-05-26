@@ -7,10 +7,10 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/ahargunyllib/banking-peak-load-prototype/internal/domain/transaction"
-	"github.com/ahargunyllib/banking-peak-load-prototype/internal/infrastructure/queue"
-	"github.com/ahargunyllib/banking-peak-load-prototype/internal/logger"
-	"github.com/ahargunyllib/banking-peak-load-prototype/internal/service"
+	"github.com/egayurcel990/banking-peak-load-prototype/internal/domain/transaction"
+	"github.com/egayurcel990/banking-peak-load-prototype/internal/infrastructure/queue"
+	"github.com/egayurcel990/banking-peak-load-prototype/internal/logger"
+	"github.com/egayurcel990/banking-peak-load-prototype/internal/service"
 	amqp "github.com/rabbitmq/amqp091-go"
 
 	"github.com/jmoiron/sqlx"

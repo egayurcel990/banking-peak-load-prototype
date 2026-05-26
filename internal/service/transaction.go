@@ -9,10 +9,10 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/ahargunyllib/banking-peak-load-prototype/internal/domain/transaction"
-	"github.com/ahargunyllib/banking-peak-load-prototype/internal/infrastructure/queue"
-	"github.com/ahargunyllib/banking-peak-load-prototype/internal/logger"
-	"github.com/ahargunyllib/banking-peak-load-prototype/internal/metrics"
+	"github.com/egayurcel990/banking-peak-load-prototype/internal/domain/transaction"
+	"github.com/egayurcel990/banking-peak-load-prototype/internal/infrastructure/queue"
+	"github.com/egayurcel990/banking-peak-load-prototype/internal/logger"
+	"github.com/egayurcel990/banking-peak-load-prototype/internal/metrics"
 	"github.com/jmoiron/sqlx"
 	"github.com/redis/go-redis/v9"
 )
