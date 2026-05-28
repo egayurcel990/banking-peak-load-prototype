@@ -1,0 +1,37 @@
+---
+# roles/app_server/tasks/seed.yml
+# Truncates and reseeds 100K accounts + 1M transactions.
+# Called from main.yml only when seed=true.
+
+- name: Seed accounts and transactions
+  ansible.builtin.command:
+    cmd: >
+      docker compose exec -T postgres psql
+      -v ON_ERROR_STOP=1
+      -U postgres -d banking
+      -c "SET synchronous_commit = off;
+          TRUNCATE TABLE transactions, accounts CASCADE;
+          INSERT INTO accounts (id, name, balance, updated_at)
+            SELECT 1000 + i, 'Account ' || (1000 + i), 1000000000.00, NOW()
+            FROM generate_series(1, 100000) AS i;
+          INSERT INTO transactions (id, source_account, dest_account, amount, status, created_at, updated_at)
+            SELECT
+              'txn' || lpad(i::text, 22, '0'),
+              1001 + (i % 100000),
+              1001 + ((i + 1) % 100000),
+              1000.00 + (i % 9000),
+              CASE
+                WHEN i % 12 < 8 THEN 'completed'
+                WHEN i % 12 < 11 THEN 'pending'
+                ELSE 'failed'
+              END,
+              NOW() - ((i % 720) * INTERVAL '1 hour'),
+              NOW()
+            FROM generate_series(0, 999999) AS i;"
+    chdir: "{{ app_dir }}"
+  become: false
+  register: seed_result
+
+- name: Print seed output
+  ansible.builtin.debug:
+    msg: "{{ seed_result.stdout_lines }}"

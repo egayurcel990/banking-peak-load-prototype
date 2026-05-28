@@ -1,0 +1,22 @@
+---
+# deployments/ansible/site.yml
+# Full setup: runs after `terraform apply`.
+# Replaces user_data_app.sh and user_data_k6.sh.
+#
+# Usage:
+#   ansible-playbook -i inventories/terraform_inventory.py site.yml
+#   ansible-playbook -i inventories/terraform_inventory.py site.yml -e seed=true
+
+- name: Setup app server
+  hosts: app_servers
+  gather_facts: true
+  roles:
+    - role: common
+    - role: app_server
+
+- name: Setup k6 runner
+  hosts: k6_runners
+  gather_facts: true
+  roles:
+    - role: common
+    - role: k6_runner

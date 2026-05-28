@@ -1,0 +1,86 @@
+---
+# roles/app_server/tasks/main.yml
+
+- name: Clone or update repo
+  ansible.builtin.git:
+    repo: "{{ repo_url }}"
+    dest: "{{ app_dir }}"
+    version: main
+    update: true
+    force: false
+  become: false
+
+- name: Fix repo ownership
+  ansible.builtin.file:
+    path: "{{ app_dir }}"
+    owner: ubuntu
+    group: ubuntu
+    recurse: true
+  become: true
+
+- name: Template .env file
+  ansible.builtin.template:
+    src: env.j2
+    dest: "{{ app_dir }}/.env"
+    owner: ubuntu
+    group: ubuntu
+    mode: "0640"
+  notify: Restart app
+
+- name: Pull latest Docker images
+  ansible.builtin.command:
+    cmd: docker compose --profile optimized --profile observability pull
+    chdir: "{{ app_dir }}"
+  become: false
+  register: pull_result
+  changed_when: "'Pull complete' in pull_result.stdout or 'Downloaded' in pull_result.stdout"
+
+- name: Start full stack (optimized + observability)
+  ansible.builtin.command:
+    cmd: docker compose --profile optimized --profile observability up -d --build
+    chdir: "{{ app_dir }}"
+  become: false
+  register: compose_up
+
+- name: Wait for API metrics endpoint to be ready
+  ansible.builtin.uri:
+    url: "http://localhost:{{ app_port }}/metrics"
+    status_code: 200
+  register: metrics_check
+  until: metrics_check.status == 200
+  retries: 24
+  delay: 5
+
+- name: Run seed data
+  ansible.builtin.include_tasks: seed.yml
+  when: seed | default(false) | bool
+
+- name: Verify seed counts
+  ansible.builtin.include_tasks: verify_seed.yml
+  when: seed | default(false) | bool
+
+- name: Restart app + observability after seed
+  ansible.builtin.command:
+    cmd: docker compose restart app prometheus grafana
+    chdir: "{{ app_dir }}"
+  become: false
+  when: seed | default(false) | bool
+
+- name: Wait for API to be ready after restart
+  ansible.builtin.uri:
+    url: "http://localhost:{{ app_port }}/metrics"
+    status_code: 200
+  register: metrics_post_seed
+  until: metrics_post_seed.status == 200
+  retries: 12
+  delay: 5
+  when: seed | default(false) | bool
+
+- name: Mark instance ready
+  ansible.builtin.file:
+    path: /home/ubuntu/cloud-demo-ready
+    state: touch
+    owner: ubuntu
+    group: ubuntu
+    mode: "0644"
+  become: true

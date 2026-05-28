@@ -1,0 +1,36 @@
+---
+# deployments/ansible/seed.yml
+# Reseed database without touching anything else.
+# Useful after instance restart when data is lost.
+#
+# Usage:
+#   ansible-playbook -i inventories/terraform_inventory.py seed.yml
+
+- name: Reseed database
+  hosts: app_servers
+  gather_facts: false
+
+  tasks:
+    - name: Run seed
+      ansible.builtin.include_role:
+        name: app_server
+        tasks_from: seed.yml
+
+    - name: Verify seed counts
+      ansible.builtin.include_role:
+        name: app_server
+        tasks_from: verify_seed.yml
+
+    - name: Restart app + observability after seed
+      ansible.builtin.command:
+        cmd: docker compose restart app prometheus grafana
+        chdir: "{{ app_dir }}"
+
+    - name: Wait for app to be healthy
+      ansible.builtin.uri:
+        url: "http://localhost:{{ app_port }}/metrics"
+        status_code: 200
+      register: health
+      until: health.status == 200
+      retries: 12
+      delay: 5

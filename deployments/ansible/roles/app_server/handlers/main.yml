@@ -1,0 +1,9 @@
+---
+# roles/app_server/handlers/main.yml
+
+- name: Restart app
+  ansible.builtin.command:
+    cmd: docker compose restart app
+    chdir: "{{ app_dir }}"
+  become: false
+  listen: Restart app

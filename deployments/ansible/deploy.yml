@@ -1,0 +1,92 @@
+---
+# deployments/ansible/deploy.yml
+# Rolling update — pull latest code + restart app without rebuilding EC2.
+# Safe to run repeatedly (idempotent).
+#
+# Usage:
+#   ansible-playbook -i inventories/terraform_inventory.py deploy.yml
+#   ansible-playbook -i inventories/terraform_inventory.py deploy.yml -e seed=true
+
+- name: Deploy latest app to app server
+  hosts: app_servers
+  gather_facts: false
+
+  tasks:
+    - name: Pull latest code
+      ansible.builtin.git:
+        repo: "{{ repo_url }}"
+        dest: "{{ app_dir }}"
+        version: main
+        update: true
+        force: false
+
+    - name: Template .env file
+      ansible.builtin.template:
+        src: roles/app_server/templates/env.j2
+        dest: "{{ app_dir }}/.env"
+        owner: ubuntu
+        group: ubuntu
+        mode: "0640"
+
+    - name: Pull latest Docker images
+      ansible.builtin.command:
+        cmd: docker compose --profile optimized --profile observability pull
+        chdir: "{{ app_dir }}"
+      register: pull_out
+      changed_when: "'Pull complete' in pull_out.stdout or 'Downloaded' in pull_out.stdout"
+
+    - name: Rebuild and restart app service only
+      ansible.builtin.command:
+        cmd: docker compose up -d --build --no-deps app
+        chdir: "{{ app_dir }}"
+
+    - name: Wait for app to be healthy
+      ansible.builtin.uri:
+        url: "http://localhost:{{ app_port }}/metrics"
+        status_code: 200
+      register: health
+      until: health.status == 200
+      retries: 12
+      delay: 5
+
+    - name: Seed data (optional)
+      ansible.builtin.include_role:
+        name: app_server
+        tasks_from: seed.yml
+      when: seed | default(false) | bool
+
+    - name: Verify seed counts (optional)
+      ansible.builtin.include_role:
+        name: app_server
+        tasks_from: verify_seed.yml
+      when: seed | default(false) | bool
+
+    - name: Print app URL
+      ansible.builtin.debug:
+        msg: "App is live at {{ api_url }}"
+
+- name: Update k6 runner scripts
+  hosts: k6_runners
+  gather_facts: false
+
+  tasks:
+    - name: Pull latest code
+      ansible.builtin.git:
+        repo: "{{ repo_url }}"
+        dest: "{{ app_dir }}"
+        version: main
+        update: true
+        force: false
+
+    - name: Template k6 runner scripts
+      ansible.builtin.template:
+        src: "roles/k6_runner/templates/{{ item.src }}"
+        dest: "{{ item.dest }}"
+        owner: ubuntu
+        group: ubuntu
+        mode: "0755"
+      loop:
+        - { src: run-mixed.sh.j2,     dest: /home/ubuntu/run-mixed.sh }
+        - { src: run-optimized.sh.j2, dest: /home/ubuntu/run-optimized.sh }
+        - { src: run-spike.sh.j2,     dest: /home/ubuntu/run-spike.sh }
+        - { src: run-status.sh.j2,    dest: /home/ubuntu/run-status.sh }

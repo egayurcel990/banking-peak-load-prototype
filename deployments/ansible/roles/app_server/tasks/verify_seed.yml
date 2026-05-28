@@ -1,0 +1,46 @@
+---
+# roles/app_server/tasks/verify_seed.yml
+
+- name: Count seeded accounts
+  ansible.builtin.command:
+    cmd: >
+      docker compose exec -T postgres psql
+      -U postgres -d banking -t
+      -c "SELECT COUNT(*) FROM accounts;"
+    chdir: "{{ app_dir }}"
+  become: false
+  register: account_count
+  changed_when: false
+
+- name: Count seeded transactions
+  ansible.builtin.command:
+    cmd: >
+      docker compose exec -T postgres psql
+      -U postgres -d banking -t
+      -c "SELECT COUNT(*) FROM transactions;"
+    chdir: "{{ app_dir }}"
+  become: false
+  register: tx_count
+  changed_when: false
+
+- name: Assert account count
+  ansible.builtin.assert:
+    that:
+      - account_count.stdout | trim | int == expected_accounts
+    fail_msg: >
+      Expected {{ expected_accounts }} accounts,
+      got {{ account_count.stdout | trim }}.
+
+- name: Assert transaction count
+  ansible.builtin.assert:
+    that:
+      - tx_count.stdout | trim | int == expected_transactions
+    fail_msg: >
+      Expected {{ expected_transactions }} transactions,
+      got {{ tx_count.stdout | trim }}.
+
+- name: Print verified counts
+  ansible.builtin.debug:
+    msg:
+      - "Accounts:     {{ account_count.stdout | trim }}"
+      - "Transactions: {{ tx_count.stdout | trim }}"
