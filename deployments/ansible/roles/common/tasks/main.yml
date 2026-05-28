@@ -1,0 +1,71 @@
+---
+# roles/common/tasks/main.yml
+# Common base setup for both app server and k6 runner.
+
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600
+  become: true
+
+- name: Install base packages
+  ansible.builtin.apt:
+    name:
+      - ca-certificates
+      - curl
+      - git
+      - gnupg
+      - lsb-release
+    state: present
+  become: true
+
+- name: Install Docker engine from Ubuntu repository
+  ansible.builtin.apt:
+    name: docker.io
+    state: present
+  become: true
+
+- name: Enable and start Docker
+  ansible.builtin.systemd:
+    name: docker
+    enabled: true
+    state: started
+  become: true
+
+- name: Add ubuntu user to docker group
+  ansible.builtin.user:
+    name: ubuntu
+    groups: docker
+    append: true
+  become: true
+
+- name: Create Docker CLI plugins directory
+  ansible.builtin.file:
+    path: /usr/local/lib/docker/cli-plugins
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  become: true
+
+- name: Install Docker Compose plugin
+  ansible.builtin.get_url:
+    url: "https://github.com/docker/compose/releases/download/{{ docker_compose_version | default('v2.29.7') }}/docker-compose-linux-x86_64"
+    dest: /usr/local/lib/docker/cli-plugins/docker-compose
+    owner: root
+    group: root
+    mode: "0755"
+  become: true
+
+- name: Add docker-compose compatibility symlink
+  ansible.builtin.file:
+    src: /usr/local/lib/docker/cli-plugins/docker-compose
+    dest: /usr/local/bin/docker-compose
+    state: link
+    force: true
+  become: true
+
+- name: Verify Docker Compose
+  ansible.builtin.command: docker compose version
+  register: docker_compose_check
+  changed_when: false

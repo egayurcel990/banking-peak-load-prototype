@@ -1,8 +1,6 @@
 ---
 # deployments/ansible/group_vars/k6_runners.yml
 
-repo_url: "https://github.com/marquisccel/banking-peak-load-prototype"
+repo_url: "https://github.com/egayurcel990/banking-peak-load-prototype.git"
+docker_compose_version: "v2.29.7"
 app_dir: "/home/ubuntu/banking-peak-load-prototype"
-
-# app_base_url is set per-host from the Terraform inventory
-# (http://<app_public_ip>:8080)

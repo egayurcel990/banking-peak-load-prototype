@@ -1,0 +1,15 @@
+#!/bin/bash
+set -euo pipefail
+cd {{ app_dir }}
+
+echo "Checking target: {{ app_base_url }}/metrics"
+for i in $(seq 1 60); do
+  if curl -fsS "{{ app_base_url }}/metrics" >/dev/null; then
+    break
+  fi
+  echo "Target is not ready yet. Retry $i/60..."
+  sleep 5
+done
+
+curl -fsS "{{ app_base_url }}/metrics" >/dev/null
+BASE_URL="{{ app_base_url }}" k6 run scripts/load-test/optimized.js

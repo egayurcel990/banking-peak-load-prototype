@@ -1,8 +1,6 @@
 ---
 # deployments/ansible/site.yml
-# Full setup: runs after `terraform apply`.
-# Replaces user_data_app.sh and user_data_k6.sh.
-#
+# Full setup after `terraform apply`.
 # Usage:
 #   ansible-playbook -i inventories/terraform_inventory.py site.yml
 #   ansible-playbook -i inventories/terraform_inventory.py site.yml -e seed=true

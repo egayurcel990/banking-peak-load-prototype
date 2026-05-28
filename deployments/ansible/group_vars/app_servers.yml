@@ -1,13 +1,10 @@
 ---
 # deployments/ansible/group_vars/app_servers.yml
-# Variables for the app server group.
-# Secrets (DB passwords, etc.) should be in a vault file — see README.
 
-repo_url: "https://github.com/marquisccel/banking-peak-load-prototype"
+repo_url: "https://github.com/egayurcel990/banking-peak-load-prototype.git"
 docker_compose_version: "v2.29.7"
 app_dir: "/home/ubuntu/banking-peak-load-prototype"
 
-# Feature flags — all on for optimized stack
 app_port: 8080
 app_env: production
 
@@ -32,6 +29,5 @@ cache_tx_status_ttl: "30s"
 queue_url: "amqp://guest:guest@rabbitmq:5672/"
 queue_workers: "10"
 
-# Seed counts (used for verification step)
 expected_accounts: 100000
 expected_transactions: 1000000

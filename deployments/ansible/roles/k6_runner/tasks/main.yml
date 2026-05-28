@@ -1,0 +1,85 @@
+---
+# roles/k6_runner/tasks/main.yml
+
+- name: Add k6 apt key
+  ansible.builtin.shell: |
+    set -euo pipefail
+    curl -fsSL https://dl.k6.io/key.gpg | gpg --dearmor -o /usr/share/keyrings/k6-archive-keyring.gpg
+  args:
+    executable: /bin/bash
+    creates: /usr/share/keyrings/k6-archive-keyring.gpg
+  become: true
+
+- name: Add k6 apt repository
+  ansible.builtin.copy:
+    dest: /etc/apt/sources.list.d/k6.list
+    content: "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main\n"
+    owner: root
+    group: root
+    mode: "0644"
+  become: true
+  register: k6_repo
+
+- name: Update apt cache after adding k6 repository
+  ansible.builtin.apt:
+    update_cache: true
+  become: true
+  when: k6_repo.changed
+
+- name: Install k6
+  ansible.builtin.apt:
+    name: k6
+    state: present
+  become: true
+
+- name: Clone or update repo on k6 runner
+  ansible.builtin.git:
+    repo: "{{ repo_url }}"
+    dest: "{{ app_dir }}"
+    version: main
+    update: true
+    force: false
+  become: false
+
+- name: Fix repo ownership
+  ansible.builtin.file:
+    path: "{{ app_dir }}"
+    owner: ubuntu
+    group: ubuntu
+    recurse: true
+  become: true
+
+- name: Wait until app target is reachable from k6 runner
+  ansible.builtin.uri:
+    url: "{{ app_base_url }}/metrics"
+    status_code: 200
+  register: app_target_check
+  until: app_target_check.status == 200
+  retries: 60
+  delay: 5
+
+- name: Template k6 runner scripts
+  ansible.builtin.template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: ubuntu
+    group: ubuntu
+    mode: "0755"
+  loop:
+    - { src: run-mixed.sh.j2,     dest: /home/ubuntu/run-mixed.sh }
+    - { src: run-optimized.sh.j2, dest: /home/ubuntu/run-optimized.sh }
+    - { src: run-spike.sh.j2,     dest: /home/ubuntu/run-spike.sh }
+    - { src: run-status.sh.j2,    dest: /home/ubuntu/run-status.sh }
+
+- name: Mark k6 runner ready
+  ansible.builtin.file:
+    path: /home/ubuntu/k6-runner-ready
+    state: touch
+    owner: ubuntu
+    group: ubuntu
+    mode: "0644"
+  become: true
+
+- name: Print k6 target URL
+  ansible.builtin.debug:
+    msg: "k6 runner is ready. Target: {{ app_base_url }}"
