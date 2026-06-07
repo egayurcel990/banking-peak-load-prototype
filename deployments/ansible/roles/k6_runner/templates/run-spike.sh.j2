@@ -12,4 +12,26 @@ for i in $(seq 1 60); do
 done
 
 curl -fsS "{{ app_base_url }}/metrics" >/dev/null
-BASE_URL="{{ app_base_url }}" k6 run scripts/load-test/spike.js
+K6_PID=""
+
+cleanup() {
+  if [ -n "${K6_PID}" ] && kill -0 "${K6_PID}" 2>/dev/null; then
+    echo "Stopping k6 process ${K6_PID}..."
+    kill -TERM -"${K6_PID}" 2>/dev/null || kill -TERM "${K6_PID}" 2>/dev/null || true
+    wait "${K6_PID}" 2>/dev/null || true
+  fi
+}
+
+trap cleanup INT TERM HUP EXIT
+
+setsid env BASE_URL="{{ app_base_url }}" k6 run scripts/load-test/spike.js &
+K6_PID=$!
+
+set +e
+wait "${K6_PID}"
+K6_STATUS=$?
+set -e
+
+trap - INT TERM HUP EXIT
+K6_PID=""
+exit "${K6_STATUS}"

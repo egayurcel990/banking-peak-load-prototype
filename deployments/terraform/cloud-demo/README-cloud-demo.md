@@ -186,6 +186,7 @@ Default mixed load test settings:
 ```
 
 The playbook stops any previous `k6 run` process before starting a new test, so two 300 iter/s tests do not overlap into ~600 req/s.
+The remote runner scripts also trap `Ctrl+C`/SSH disconnects and stop their child `k6` process, so an interrupted Ansible run should not leave load running in the background.
 
 Expected k6 output:
 
