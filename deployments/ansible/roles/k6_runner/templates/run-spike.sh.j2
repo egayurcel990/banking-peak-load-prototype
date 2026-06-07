@@ -12,7 +12,20 @@ for i in $(seq 1 60); do
 done
 
 curl -fsS "{{ app_base_url }}/metrics" >/dev/null
+RUNNER_PID=$$
 K6_PID=""
+WATCHDOG_PID=""
+
+watch_runner() {
+  while kill -0 "${RUNNER_PID}" 2>/dev/null && kill -0 "${K6_PID}" 2>/dev/null; do
+    sleep 1
+  done
+
+  if kill -0 "${K6_PID}" 2>/dev/null; then
+    echo "Runner session ended; stopping k6 process ${K6_PID}..."
+    kill -TERM "${K6_PID}" 2>/dev/null || true
+  fi
+}
 
 cleanup() {
   if [ -n "${K6_PID}" ] && kill -0 "${K6_PID}" 2>/dev/null; then
@@ -20,12 +33,18 @@ cleanup() {
     kill -TERM -"${K6_PID}" 2>/dev/null || kill -TERM "${K6_PID}" 2>/dev/null || true
     wait "${K6_PID}" 2>/dev/null || true
   fi
+
+  if [ -n "${WATCHDOG_PID}" ] && kill -0 "${WATCHDOG_PID}" 2>/dev/null; then
+    kill -TERM "${WATCHDOG_PID}" 2>/dev/null || true
+  fi
 }
 
 trap cleanup INT TERM HUP EXIT
 
 env BASE_URL="{{ app_base_url }}" k6 run scripts/load-test/spike.js &
 K6_PID=$!
+watch_runner &
+WATCHDOG_PID=$!
 
 set +e
 wait "${K6_PID}"
@@ -34,4 +53,5 @@ set -e
 
 trap - INT TERM HUP EXIT
 K6_PID=""
+WATCHDOG_PID=""
 exit "${K6_STATUS}"
