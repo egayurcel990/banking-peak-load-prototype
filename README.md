@@ -400,12 +400,15 @@ terraform -chdir=../terraform/cloud-demo output -raw grafana_url
 ### Run load test
 
 ```bash
-# From the k6 runner (scripts already templated by Ansible)
-ssh -i ~/.ssh/id_rsa ubuntu@<k6_public_ip> '/home/ubuntu/run-mixed.sh'
-ssh -i ~/.ssh/id_rsa ubuntu@<k6_public_ip> '/home/ubuntu/run-spike.sh'
+# Check k6 runner and target status
+ansible-playbook -i inventories/terraform_inventory.py loadtest.yml -e loadtest_script=run-status.sh
 
-# Or get the command directly from Terraform output
-$(terraform -chdir=../terraform/cloud-demo output -raw run_mixed_command)
+# Run the default mixed load test
+ansible-playbook -i inventories/terraform_inventory.py loadtest.yml
+
+# Optional variants
+ansible-playbook -i inventories/terraform_inventory.py loadtest.yml -e loadtest_script=run-spike.sh
+ansible-playbook -i inventories/terraform_inventory.py loadtest.yml -e loadtest_script=run-optimized.sh
 ```
 
 ### Rolling deploy (update code without re-provisioning)
@@ -426,9 +429,10 @@ ansible-playbook -i inventories/terraform_inventory.py seed.yml
 
 | Playbook | Description |
 |---|---|
-| `site.yml` | Full setup — runs once after `terraform apply`. Installs Docker, deploys stack, optionally seeds data. |
-| `deploy.yml` | Rolling update — pulls latest code, rebuilds app container, health-checks. Safe to re-run. |
-| `seed.yml` | Reseed only — truncates and reseeds 100K accounts + 1M transactions. |
+| `site.yml` | Full setup after `terraform apply`. Installs Docker, deploys stack, optionally seeds data. |
+| `deploy.yml` | Rolling update. Pulls latest code, rebuilds app container, and health-checks. Safe to re-run. |
+| `seed.yml` | Reseed only. Truncates and reseeds 100K accounts + 1M transactions. |
+| `loadtest.yml` | Runs k6 status, mixed, spike, or optimized scripts from the k6 runner. |
 
 ### Makefile shortcuts (after copying .env.cloud)
 

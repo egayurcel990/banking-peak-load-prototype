@@ -53,7 +53,7 @@ ansible all -i inventories/terraform_inventory.py -m ping
 Configure both servers with Ansible:
 
 ```bash
-ansible-playbook -i inventories/terraform_inventory.py site.yml
+ansible-playbook -i inventories/terraform_inventory.py site.yml -e seed=true
 ```
 
 Wait 5-10 minutes after Ansible finishes for cloud-init and the app stack to settle.
@@ -74,14 +74,18 @@ Open Grafana using the output URL. Login: `admin / admin`.
 ## Run load test
 
 ```bash
-$(terraform output -raw run_mixed_command)
-```
+# Return to deployments/ansible if you checked Terraform outputs above
+cd ../../ansible
 
-or SSH to the runner:
+# Check k6 runner and target status
+ansible-playbook -i inventories/terraform_inventory.py loadtest.yml -e loadtest_script=run-status.sh
 
-```bash
-$(terraform output -raw ssh_k6_command)
-/home/ubuntu/run-mixed.sh
+# Run the default mixed load test
+ansible-playbook -i inventories/terraform_inventory.py loadtest.yml
+
+# Optional variants
+ansible-playbook -i inventories/terraform_inventory.py loadtest.yml -e loadtest_script=run-spike.sh
+ansible-playbook -i inventories/terraform_inventory.py loadtest.yml -e loadtest_script=run-optimized.sh
 ```
 
 ## Troubleshooting

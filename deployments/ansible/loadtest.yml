@@ -1,0 +1,37 @@
+---
+# deployments/ansible/loadtest.yml
+# Run k6 scripts from the k6 runner without using manual SSH commands.
+#
+# Usage:
+#   ansible-playbook -i inventories/terraform_inventory.py loadtest.yml
+#   ansible-playbook -i inventories/terraform_inventory.py loadtest.yml -e loadtest_script=run-status.sh
+#   ansible-playbook -i inventories/terraform_inventory.py loadtest.yml -e loadtest_script=run-spike.sh
+
+- name: Run k6 load test
+  hosts: k6_runners
+  gather_facts: false
+
+  vars:
+    loadtest_script: run-mixed.sh
+    allowed_loadtest_scripts:
+      - run-mixed.sh
+      - run-optimized.sh
+      - run-spike.sh
+      - run-status.sh
+
+  tasks:
+    - name: Validate selected k6 script
+      ansible.builtin.assert:
+        that:
+          - loadtest_script in allowed_loadtest_scripts
+        fail_msg: "Invalid loadtest_script '{{ loadtest_script }}'. Use one of: {{ allowed_loadtest_scripts | join(', ') }}"
+
+    - name: Run selected k6 script
+      ansible.builtin.command:
+        cmd: "/home/ubuntu/{{ loadtest_script }}"
+      register: loadtest_result
+      changed_when: loadtest_script != "run-status.sh"
+
+    - name: Print k6 output
+      ansible.builtin.debug:
+        var: loadtest_result.stdout_lines
