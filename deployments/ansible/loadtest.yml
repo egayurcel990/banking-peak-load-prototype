@@ -20,11 +20,10 @@
       - run-status.sh
 
   tasks:
-    - name: Validate selected k6 script
-      ansible.builtin.assert:
-        that:
-          - loadtest_script in allowed_loadtest_scripts
-        fail_msg: "Invalid loadtest_script '{{ loadtest_script }}'. Use one of: {{ allowed_loadtest_scripts | join(', ') }}"
+    - name: Reject invalid k6 script
+      ansible.builtin.fail:
+        msg: "Invalid loadtest_script '{{ loadtest_script }}'. Use one of: {{ allowed_loadtest_scripts | join(', ') }}"
+      when: loadtest_script not in allowed_loadtest_scripts
 
     - name: Stop any previous k6 run before starting a new load test
       ansible.builtin.shell: "pkill -f '[k]6 run' || true"
