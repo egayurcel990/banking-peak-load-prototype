@@ -310,6 +310,8 @@ The `deployments/terraform/cloud-demo/` module provisions two EC2 instances on A
 
 Ansible (`deployments/ansible/`) handles all post-provision configuration: installs Docker, deploys the stack, seeds data, installs k6, and templates runner scripts — replacing the original `user_data` shell scripts with idempotent, re-runnable playbooks.
 
+For the safest step-by-step demo flow, use the dedicated [Cloud Demo Runbook](deployments/terraform/cloud-demo/README-cloud-demo.md). The shorter steps below assume commands are run from WSL/Linux and from the paths shown.
+
 ### Prerequisites
 
 1. Start AWS Learner Lab and update `~/.aws/credentials`.
@@ -334,8 +336,11 @@ pip install ansible
 > **WSL users:** always run Ansible from your Linux home directory (`~/`), not from `/mnt/...`. The Windows-mounted filesystem is world-writable and Ansible will ignore `ansible.cfg` from there.
 >
 > ```bash
-> cp -r /mnt/d/path/to/banking-peak-load-prototype ~/banking-peak-load-prototype
+> git clone https://github.com/egayurcel990/banking-peak-load-prototype.git
+> # Or copy from Windows only if ~/banking-peak-load-prototype does not already exist:
+> # cp -r /mnt/d/path/to/banking-peak-load-prototype ~/banking-peak-load-prototype
 > cd ~/banking-peak-load-prototype
+> git pull origin main
 > ```
 
 ### Deploy
@@ -364,6 +369,7 @@ terraform apply -var="ssh_cidr=$(curl -4 -s ifconfig.me)/32"
 
 ```bash
 cd ../../ansible
+chmod +x inventories/terraform_inventory.py
 ansible all -i inventories/terraform_inventory.py -m ping
 # Expected: pong from app_server and k6_runner
 ```
@@ -372,6 +378,12 @@ ansible all -i inventories/terraform_inventory.py -m ping
 
 ```bash
 ansible-playbook -i inventories/terraform_inventory.py site.yml -e seed=true
+```
+
+Use `-e seed=true` for fresh EC2 instances, after `terraform destroy`, or when you intentionally want to reset data. For a repeat demo on the same running EC2 instances, use:
+
+```bash
+ansible-playbook -i inventories/terraform_inventory.py site.yml
 ```
 
 This runs three roles in order:
@@ -416,7 +428,8 @@ ansible-playbook -i inventories/terraform_inventory.py loadtest.yml -e loadtest_
 ### Rolling deploy (update code without re-provisioning)
 
 ```bash
-# Pull latest code, rebuild app container only, health-check automatically
+# Run after git pull when EC2 already exists.
+# This refreshes the app and k6 runner scripts without recreating EC2.
 ansible-playbook -i inventories/terraform_inventory.py deploy.yml
 ```
 
@@ -436,7 +449,9 @@ ansible-playbook -i inventories/terraform_inventory.py seed.yml
 | `seed.yml` | Reseed only. Truncates and reseeds 100K accounts + 1M transactions. |
 | `loadtest.yml` | Runs k6 status, mixed, spike, or optimized scripts from the k6 runner. |
 
-### Makefile shortcuts (after copying .env.cloud)
+### Optional Makefile shortcuts (legacy)
+
+The Ansible flow above is preferred for the cloud demo. These helper targets still exist for manual SSH-style operations after copying `.env.cloud`.
 
 ```bash
 cp .env.cloud.example .env.cloud
@@ -463,10 +478,21 @@ curl "http://localhost:9090/api/v1/query?query=banking_api_requests_total"
 # Then run the load test for at least 2–3 minutes before checking dashboards.
 ```
 
+Common demo errors:
+
+| Error | Fix |
+|---|---|
+| `terraform apply` says `No configuration files` | Run it from `~/banking-peak-load-prototype/deployments/terraform/cloud-demo`. |
+| `cd ansible: No such file or directory` | From `deployments/terraform/cloud-demo`, use `cd ../../ansible`. |
+| Ansible inventory says `Permission denied` | Run `chmod +x inventories/terraform_inventory.py` from `deployments/ansible`. |
+| Hosts are `UNREACHABLE` on port 22 | Re-apply SSH CIDR from Terraform: `terraform apply -var="ssh_cidr=$(curl -4 -s ifconfig.me)/32"`. |
+| `loadtest.yml could not be found` | Run `git pull origin main` in `~/banking-peak-load-prototype`. |
+| Grafana shows around `600 req/s` | Two k6 runs overlapped. Re-run `loadtest.yml`; it stops previous `k6 run` first. |
+
 ### Destroy
 
 ```bash
-cd deployments/terraform/cloud-demo
+cd ~/banking-peak-load-prototype/deployments/terraform/cloud-demo
 terraform destroy
 ```
 
@@ -616,7 +642,8 @@ k6 run scripts/load-test/spike.js
 make k8s-load-test
 
 # Load tests (Cloud)
-make cloud-load-test
+cd deployments/ansible
+ansible-playbook -i inventories/terraform_inventory.py loadtest.yml
 ```
 
 ---
