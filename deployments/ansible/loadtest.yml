@@ -26,6 +26,16 @@
           - loadtest_script in allowed_loadtest_scripts
         fail_msg: "Invalid loadtest_script '{{ loadtest_script }}'. Use one of: {{ allowed_loadtest_scripts | join(', ') }}"
 
+    - name: Stop any previous k6 run before starting a new load test
+      ansible.builtin.shell: "pkill -f 'k6 run' || true"
+      changed_when: false
+      when: loadtest_script != "run-status.sh"
+
+    - name: Wait for previous k6 process to exit
+      ansible.builtin.pause:
+        seconds: 2
+      when: loadtest_script != "run-status.sh"
+
     - name: Run selected k6 script
       ansible.builtin.command:
         cmd: "/home/ubuntu/{{ loadtest_script }}"

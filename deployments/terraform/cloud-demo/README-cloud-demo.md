@@ -81,6 +81,8 @@ cd ../../ansible
 ansible-playbook -i inventories/terraform_inventory.py loadtest.yml -e loadtest_script=run-status.sh
 
 # Run the default mixed load test
+# Default mixed load: 300 iterations/s for 10 minutes.
+# The playbook stops any previous k6 run first to avoid overlapping tests.
 ansible-playbook -i inventories/terraform_inventory.py loadtest.yml
 
 # Optional variants

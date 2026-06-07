@@ -12,4 +12,4 @@ for i in $(seq 1 60); do
 done
 
 curl -fsS "{{ app_base_url }}/metrics" >/dev/null
-BASE_URL="{{ app_base_url }}" k6 run scripts/load-test/mixed.js
+BASE_URL="{{ app_base_url }}" RATE="${RATE:-300}" DURATION="${DURATION:-10m}" k6 run scripts/load-test/mixed.js
