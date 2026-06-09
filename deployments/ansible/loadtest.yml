@@ -26,7 +26,10 @@
       when: loadtest_script not in allowed_loadtest_scripts
 
     - name: Stop any previous k6 run before starting a new load test
-      ansible.builtin.shell: "pkill -f '[k]6 run' || true"
+      ansible.builtin.shell: |
+        pkill -TERM -f '[k]6 run' || true
+        sleep 2
+        pkill -KILL -f '[k]6 run' || true
       changed_when: false
       when: loadtest_script != "run-status.sh"
 
@@ -37,7 +40,20 @@
 
     - name: Run selected k6 script
       ansible.builtin.command:
-        cmd: "/home/ubuntu/{{ loadtest_script }}"
+        argv:
+          - ssh
+          - -tt
+          - -i
+          - "{{ ansible_ssh_private_key_file }}"
+          - -o
+          - StrictHostKeyChecking=no
+          - -o
+          - UserKnownHostsFile=/dev/null
+          - -o
+          - LogLevel=ERROR
+          - "{{ ansible_user }}@{{ ansible_host }}"
+          - "/home/ubuntu/{{ loadtest_script }}"
+      delegate_to: localhost
       register: loadtest_result
       changed_when: loadtest_script != "run-status.sh"
 
