@@ -7,7 +7,7 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/egayurcel990/banking-peak-load-prototype/internal/config"
+	"github.com/marquisccel/banking-peak-load-prototype/internal/config"
 	"github.com/jackc/pgx/v5"
 )
 
