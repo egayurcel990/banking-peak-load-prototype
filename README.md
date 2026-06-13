@@ -17,7 +17,7 @@
   <img src="https://img.shields.io/badge/Ansible-Automation-EE0000?style=flat-square&logo=ansible&logoColor=white" />
   <img src="https://img.shields.io/badge/Prometheus-Grafana-E6522C?style=flat-square&logo=prometheus&logoColor=white" />
   <img src="https://img.shields.io/badge/k6-Load%20Testing-7D64FF?style=flat-square&logo=k6&logoColor=white" />
-  <img src="https://github.com/egayurcel990/banking-peak-load-prototype/actions/workflows/cicd.yaml/badge.svg?branch=main&style=flat-square" />
+  <img src="https://github.com/marquisccel/banking-peak-load-prototype/actions/workflows/cicd.yaml/badge.svg?branch=main&style=flat-square" />
 </p>
 
 ---
@@ -336,7 +336,7 @@ pip install ansible
 > **WSL users:** always run Ansible from your Linux home directory (`~/`), not from `/mnt/...`. The Windows-mounted filesystem is world-writable and Ansible will ignore `ansible.cfg` from there.
 >
 > ```bash
-> git clone https://github.com/egayurcel990/banking-peak-load-prototype.git
+> git clone https://github.com/marquisccel/banking-peak-load-prototype.git
 > # Or copy from Windows only if ~/banking-peak-load-prototype does not already exist:
 > # cp -r /mnt/d/path/to/banking-peak-load-prototype ~/banking-peak-load-prototype
 > cd ~/banking-peak-load-prototype

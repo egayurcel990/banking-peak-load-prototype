@@ -4,9 +4,9 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/egayurcel990/banking-peak-load-prototype/internal/domain/transaction"
-	"github.com/egayurcel990/banking-peak-load-prototype/internal/handler/request"
-	"github.com/egayurcel990/banking-peak-load-prototype/internal/service"
+	"github.com/marquisccel/banking-peak-load-prototype/internal/domain/transaction"
+	"github.com/marquisccel/banking-peak-load-prototype/internal/handler/request"
+	"github.com/marquisccel/banking-peak-load-prototype/internal/service"
 	"github.com/labstack/echo/v5"
 )
 

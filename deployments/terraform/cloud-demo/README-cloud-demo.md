@@ -15,7 +15,7 @@ Run the demo from the Linux home directory, not from `/mnt/...`.
 cd ~
 
 # Clone if this is a fresh WSL/Linux machine.
-git clone https://github.com/egayurcel990/banking-peak-load-prototype.git
+git clone https://github.com/marquisccel/banking-peak-load-prototype.git
 
 # Alternative: if the repo is still on the Windows drive and does not exist in ~/ yet.
 # cp -r /mnt/d/path/to/banking-peak-load-prototype ~/banking-peak-load-prototype
@@ -64,7 +64,7 @@ Edit `terraform.tfvars`:
 
 ```hcl
 aws_region        = "us-east-1"
-repo_url          = "https://github.com/egayurcel990/banking-peak-load-prototype.git"
+repo_url          = "https://github.com/marquisccel/banking-peak-load-prototype.git"
 public_key_path   = "~/.ssh/id_rsa.pub"
 ssh_cidr          = "<your-public-ip>/32"
 public_access_cidr = "0.0.0.0/0"

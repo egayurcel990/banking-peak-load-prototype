@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/egayurcel990/banking-peak-load-prototype/internal/domain/account"
+	"github.com/marquisccel/banking-peak-load-prototype/internal/domain/account"
 	"github.com/jmoiron/sqlx"
 )
 

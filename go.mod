@@ -1,4 +1,4 @@
-module github.com/egayurcel990/banking-peak-load-prototype
+module github.com/marquisccel/banking-peak-load-prototype
 
 go 1.25.0
 
